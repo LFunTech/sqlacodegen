@@ -32,6 +32,7 @@ def main() -> None:
                         help="don't generate classes, only tables")
     parser.add_argument('--nocomments', action='store_true', help="don't render column comments")
     parser.add_argument('--outfile', help='file to write output to (default: stdout)')
+    parser.add_argument("--lfun", type=bool, help="use lfun framework")
     args = parser.parse_args()
 
     if args.version:
@@ -52,7 +53,7 @@ def main() -> None:
     outfile = io.open(args.outfile, 'w', encoding='utf-8') if args.outfile else sys.stdout
     generator = CodeGenerator(metadata, args.noindexes, args.noconstraints, args.nojoined,
                               args.noinflect, args.noclasses, table_name_prefix=args.table_prefix,
-                              nocomments=args.nocomments)
+                              nocomments=args.nocomments, lfun=args.lfun)
     generator.render(outfile)
 
 

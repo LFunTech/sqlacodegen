@@ -377,8 +377,9 @@ class CodeGenerator:
                  ignored_tables: Tuple[str, str] = ('alembic_version', 'migrate_version'),
                  table_model: type = ModelTable, class_model: type = ModelClass,
                  template: Optional[Any] = None, nocomments: bool = False,
-                 table_name_prefix: str = "") -> None:
+                 table_name_prefix: str = "", lfun: bool = True) -> None:
         super(CodeGenerator, self).__init__()
+        self.lfun = lfun
         self.metadata = metadata
         self.noindexes = noindexes
         self.noconstraints = noconstraints
@@ -479,7 +480,9 @@ class CodeGenerator:
 
         # Add either the MetaData or declarative_base import depending on whether there are mapped
         # classes or not
-        if not any(isinstance(model, self.class_model) for model in self.models):
+        if self.lfun:
+            self.collector.add_literal_import("lfun_framework.lib_common.db_util", "Base")
+        elif not any(isinstance(model, self.class_model) for model in self.models):
             self.collector.add_literal_import('sqlalchemy', 'MetaData')
         else:
             self.collector.add_literal_import('sqlalchemy.ext.declarative', 'declarative_base')
@@ -496,6 +499,8 @@ class CodeGenerator:
                          for package, names in self.collector.items())
 
     def render_metadata_declarations(self) -> str:
+        if "lfun_framework.lib_common.db_util" in self.collector:
+            return "metadata = Base.metadata"
         if 'sqlalchemy.ext.declarative' in self.collector:
             return 'Base = declarative_base()\nmetadata = Base.metadata'
         return 'metadata = MetaData()'
